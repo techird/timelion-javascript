@@ -124,8 +124,8 @@ interface ExpressionNext extends ExpressionCompile {
   /** Calculate the moving standard deviation over a given window. Uses naive two-pass algorithm. Rounding errors may become more noticeable with very long series, or series with very large numbers. */
   movingstd: Expression<number | MovingStdFunctionParams>;
 
-  /** Multiply the values of one or more series in a seriesList to each position, in each series, of the input seriesList */
-  mutiply: Expression<number | string | MutiplyFunctionParams>;
+  /** Multipy the values of one or more series in a seriesList to each position, in each series, of the input seriesList */
+  multipy: Expression<number | string | MultipyFunctionParams>;
 
   /** Show the series as points */
   points: Expression<number | PointsFunctionParams>;
@@ -337,7 +337,7 @@ interface MovingStdFunctionParams {
   window: number;
 }
 
-interface MutiplyFunctionParams {
+interface MultipyFunctionParams {
   /** Number or series by which to multiply. If passing a seriesList it must contain exactly 1 series.  */
   multiplier: string | number;
 }
