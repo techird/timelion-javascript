@@ -6,6 +6,7 @@
 			"dom",
 			"es2017"
 		],
+		"sourceRoot": "./src",
 		"outDir": "./dist",
     "sourceMap": true,
     "declaration": true

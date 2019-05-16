@@ -1,6 +1,6 @@
 
 
-const EXP_FUNCTIONS = ['es','static','abs','bars','color','condition','cusum','derivative','divide','first','fit','hide','label','legend','lines','log','max','min','movingaverage','movingstd','mutiply','points','precision','prop','range','scale_interval','subtract','sum','title','trim','yaxis','holt','trend'];
+const EXP_FUNCTIONS = ['es','static','abs','bars','color','condition','cusum','derivative','divide','first','fit','hide','label','legend','lines','log','max','min','movingaverage','movingstd','multipy','points','precision','prop','range','scale_interval','subtract','sum','title','trim','yaxis','holt','trend'];
 
 const next = (prev?: ExpressionCompile) => {
   const compile = (func?: string, param?: any) => {
