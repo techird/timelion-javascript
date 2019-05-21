@@ -1,13 +1,19 @@
 
 
-const EXP_FUNCTIONS = ['es','static','abs','bars','color','condition','cusum','derivative','divide','first','fit','hide','label','legend','lines','log','max','min','movingaverage','movingstd','multipy','points','precision','prop','range','scale_interval','subtract','sum','title','trim','yaxis','holt','trend'];
+const EXP_FUNCTIONS = ['es','static','abs','bars','color','condition','cusum','derivative','divide','first','fit','hide','label','legend','lines','log','max','min','movingaverage','movingstd','multiply','points','precision','prop','range','scale_interval','subtract','sum','title','trim','yaxis','holt','trend'];
+
+const isExpressionNext = (value: any) : value is ReturnType<typeof next> => value && typeof value.compile === 'function';
+const escapeQuote = (str: any) => String(str).replace(/\"/g, '\\"');
 
 const next = (prev?: ExpressionCompile) => {
   const compile = (func?: string, param?: any) => {
     // build param expression
     let paramExpr = '';
-    if (typeof param === 'string') {
-      paramExpr = `"${param}"`;
+    if (isExpressionNext(param)) {
+      paramExpr = param.compile();
+    }
+    else if (typeof param === 'string') {
+      paramExpr = `"${escapeQuote(param)}"`;
     }
     else if (typeof param === 'number' || typeof param === 'boolean') {
       paramExpr = String(param);
@@ -15,11 +21,14 @@ const next = (prev?: ExpressionCompile) => {
     else if (param && typeof param === 'object') {
       const pairs = [];
       for (let [key, value] of Object.entries(param)) {
-        if (typeof value === 'number' || typeof value === 'boolean') {
+        if (isExpressionNext(value)) {
+          pairs.push(`${key}=${value.compile()}`);
+        }
+        else if (typeof value === 'number' || typeof value === 'boolean') {
           pairs.push(`${key}=${value}`);
         }
         else {
-          pairs.push(`${key}="${value}"`);
+          pairs.push(`${key}="${escapeQuote(value)}"`);
         }
       }
       paramExpr = pairs.join(', ');
@@ -66,7 +75,7 @@ interface Expression<T = any> {
 interface ExpressionNext extends ExpressionCompile {
   /** Pull data from an elasticsearch instance */
   es: Expression<string | ESFunctionParams>
-  
+
   /** Draws a single value across the chart */
   static: Expression<string | number | StaticFunctionParams>;
 
@@ -89,7 +98,7 @@ interface ExpressionNext extends ExpressionCompile {
   derivative: Expression<never>;
 
   /** Divides the values of one or more series in a seriesList to each position, in each series, of the input seriesList */
-  divide: Expression<number | DivideFunctionParams>;
+  divide: Expression<number | string | DivideFunctionParams>;
 
   /** This is an internal function that simply returns the input seriesList. Don't use this */
   first: Expression<never>;
@@ -125,7 +134,7 @@ interface ExpressionNext extends ExpressionCompile {
   movingstd: Expression<number | MovingStdFunctionParams>;
 
   /** Multipy the values of one or more series in a seriesList to each position, in each series, of the input seriesList */
-  multipy: Expression<number | string | MultipyFunctionParams>;
+  multiply: Expression<number | string | MultipyFunctionParams>;
 
   /** Show the series as points */
   points: Expression<number | PointsFunctionParams>;
@@ -135,7 +144,7 @@ interface ExpressionNext extends ExpressionCompile {
 
   /** Use at your own risk, sets arbitrary properties on the series. For example .props(label=bears!) */
   prop: Expression<any>;
-  
+
   /** Changes the max and min of a series while keeping the same shape */
   range: Expression<RangeFunctionParams>;
 
@@ -161,7 +170,7 @@ interface ExpressionNext extends ExpressionCompile {
     Sample the beginning of a series and use it to forecast what should happen via several optional parameters. In general, like everything, this is crappy at predicting the future. You're much better off using it to predict what should be happening right now, for the purpose of anomaly detection. Note that nulls will be filled with forecasted values. Deal with it.
   */
   holt: Expression<HoltFunctionParams>;
-  
+
   /** Draws a trend line using a specified regression algorithm */
   trend: Expression<string | TrendFunctionParams>;
 }
@@ -169,42 +178,42 @@ interface ExpressionNext extends ExpressionCompile {
 
 interface ESFunctionParams {
   /**
-   * Query in lucene query string syntax  
+   * Query in lucene query string syntax
 */
   q: string;
 
   /**
-   * An elasticsearch single value metric agg, eg avg, sum, min, max or cardinality, followed by a field. Eg "sum:bytes", or just "count"  
+   * An elasticsearch single value metric agg, eg avg, sum, min, max or cardinality, followed by a field. Eg "sum:bytes", or just "count"
 */
   metric: string;
 
   /**
-   * An elasticsearch field to split the series on and a limit. Eg, "hostname:10" to get the top 10 hostnames  
+   * An elasticsearch field to split the series on and a limit. Eg, "hostname:10" to get the top 10 hostnames
 */
   split: string;
 
   /**
-   * Index to query, wildcards accepted  
+   * Index to query, wildcards accepted
 */
   index: string;
 
   /**
-   * Field of type "date" to use for x-axis  
+   * Field of type "date" to use for x-axis
 */
   timefield: string;
 
   /**
-   * Respect filters on Kibana dashboards. Only has an effect when using on Kibana dashboards  
+   * Respect filters on Kibana dashboards. Only has an effect when using on Kibana dashboards
 */
   kibana: boolean | string;
 
   /**
-   * **DO NOT USE THIS**. Its fun for debugging fit functions, but you really should use the interval picker  
+   * **DO NOT USE THIS**. Its fun for debugging fit functions, but you really should use the interval picker
 */
   interval: string;
 
   /**
-   * Offset the series retrieval by a date expression. Eg -1M to make events from one month ago appear as if they are happening now  
+   * Offset the series retrieval by a date expression. Eg -1M to make events from one month ago appear as if they are happening now
 */
   offset: string;
 
@@ -263,7 +272,7 @@ interface CusumFunctionParams {
 
 interface DivideFunctionParams {
   /** Number or series to divide by. If passing a seriesList it must contain exactly 1 series. */
-  divisor: string | number;
+  divisor: string | number | ExpressionNext;
 }
 
 interface FitFunctionParams {
